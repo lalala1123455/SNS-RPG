@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>SNS‑RPG «Echoes» — Contextual Choices & Profile</title>
+  <title>SNS-RPG «Echoes» — Unique Posts Edition</title>
   <style>
     body{font-family:system-ui, sans-serif; background:#f6f7f9; margin:0; padding:0;}
     header{background:#4f46e5; color:#fff; padding:12px 20px; display:flex; justify-content:space-between; align-items:center;}
@@ -37,7 +37,7 @@
 </head>
 <body>
   <header>
-    <h1>Echoes — SNS‑RPG</h1>
+    <h1>Echoes — SNS-RPG</h1>
     <button id="profileBtn">プロフィール</button>
   </header>
 
@@ -58,135 +58,168 @@
   </div>
 
 <script>
-// ==============================
-// Context‑aware Choices & Profile
-// ==============================
+// Unique Posts Edition: 一度表示されたポストは再度表示されないように管理
 
-// 1. Player State
+// Player State
 const player = {followers:0, influence:0, level:1, commentsMade:0, likesGiven:0};
 
-// 2. Post Catalogue with Pre‑set Choices
+// 定義済みポストと選択肢
 const postCatalogue = [
-  // --- 既存 7 件 ---
-  {text:'今日は霧が濃いわね。森の奥から誰かの歌声が聞こえる… ✨', choices:[{text:'🎵 その歌声気になる！',f:+2,i:+4},{text:'😱 ちょっと不気味…',f:-1,i:+2},{text:'🔍 調査に行こう！',f:+3,i:+3}]},
-  {text:'遺跡で古い端末を拾った！でも電源の入れ方が分からない。 🗺️', choices:[{text:'💡 電源ボタン探してみて',f:+1,i:+3},{text:'🔧 修理手伝おうか？',f:+3,i:+4},{text:'🗑️ 早く捨てた方がいいかも',f:-2,i:+1}]},
-  {text:'ドラゴンの影を見たって噂、みんな信じる？ 🐉', choices:[{text:'🔥 本物だったら大ニュース！',f:+4,i:+4},{text:'🤔 ガセだと思う',f:-1,i:+2},{text:'🛡️ 退治に行くべき！',f:+2,i:+3}]},
-  {text:'旅人さん、温かいスープはいかが？ 🗺️', choices:[{text:'🍲 飲みたい！',f:+3,i:+4},{text:'🌡️ 本当に暖かいの？',f:+1,i:+2},{text:'🧚 ピクシさん生きてたんだ！',f:+2,i:+3}]},
-  {text:'星が近い夜は、願い事が叶うらしい。 🌟', choices:[{text:'🌠 何を願おうかな',f:+2,i:+3},{text:'🤷‍♂️ そんなの信じない',f:-1,i:+1},{text:'📜 古い伝承かもね',f:+1,i:+2}]},
-  {text:'ギルドに珍しいクエストが来たよ。護衛だけど危険度Sランク！ 🏰', choices:[{text:'🗡️ 挑戦しよう！',f:+4,i:+4},{text:'😨 無理無理…',f:-2,i:+1},{text:'💰 報酬は？',f:+2,i:+3}]},
-  {text:'新しい楽器を作ったんだ。今度聴いてくれる？ 🎻', choices:[{text:'🎶 ぜひ聴きたい！',f:+3,i:+3},{text:'🤔 音程合ってる？',f:-1,i:+2},{text:'👏 発明家だね！',f:+2,i:+4}]},
-
-  // --- 新規10件 ---
-  {text:'湖に巨大な魚が現れたらしい！誰か見た？ 🐟', choices:[{text:'🎣 釣りに行きたい！',f:+3,i:+3},{text:'📸 写真ある？',f:+2,i:+2},{text:'😅 それは盛りすぎでは',f:-1,i:+1}]},
-  {text:'魔法の花が咲いたって話題になってるよ。 🌸', choices:[{text:'✨ 見に行きたい！',f:+3,i:+4},{text:'🤔 本当に咲くの？',f:+1,i:+2},{text:'😤 どうせ作り話',f:-2,i:+1}]},
-  {text:'街の広場で占い師が無料で未来を見てくれるって！ 🔮', choices:[{text:'🙋‍♂️ 占ってほしい！',f:+3,i:+3},{text:'🤷‍♀️ 信じないなぁ',f:-1,i:+2},{text:'👀 行列できてたよ',f:+2,i:+2}]},
-  {text:'今日の森は霧が深いから気をつけてね。 🌫️', choices:[{text:'👣 近道してみる',f:+2,i:+2},{text:'🙅‍♀️ 行かない方がいい',f:+1,i:+1},{text:'😱 怖いからやめとく',f:-1,i:+2}]},
-  {text:'天空城が見えたって人がいる！本当かな？ 🏯', choices:[{text:'👀 見てみたい！',f:+3,i:+4},{text:'🤨 幻覚じゃ？',f:-2,i:+1},{text:'🌈 冒険の予感！',f:+2,i:+3}]},
-  {text:'地下迷宮でレアアイテムが見つかったって！ 🗝️', choices:[{text:'💎 参加したい！',f:+3,i:+4},{text:'😅 迷子になりそう',f:+1,i:+2},{text:'🤥 嘘じゃない？',f:-2,i:+1}]},
-  {text:'炎の祭りが今夜開催！みんな来てね！ 🔥', choices:[{text:'🕺 盛り上がりそう！',f:+3,i:+3},{text:'🥵 火の粉に注意',f:+1,i:+2},{text:'😑 あまり興味ない',f:-1,i:+1}]},
-  {text:'月が今日はいつもより赤く見える…不吉な予感？ 🌕', choices:[{text:'🌑 神秘的だね',f:+2,i:+3},{text:'😱 ちょっと怖い',f:+1,i:+1},{text:'🤣 ただの気のせい',f:-1,i:+1}]},
-  {text:'港町で新しい市場がオープンしたらしい！ 🏪', choices:[{text:'🛍️ 行ってみたい！',f:+3,i:+2},{text:'🍴 美味しいものありそう',f:+2,i:+3},{text:'💸 節約中だから無理',f:-1,i:+1}]},
-  {text:'砂漠でオアシスを発見した旅人がいるそう！ 🏜️', choices:[{text:'💧 行ってみたい',f:+3,i:+3},{text:'🧭 道に迷いそう',f:+1,i:+1},{text:'🦴 幻だよたぶん',f:-1,i:+1}]}
+  // 既存7種
+  {text:'今日は霧が濃いわね。森の奥から誰かの歌声が聞こえる… ✨', choices:[{text:'🎵 その歌声気になる！',f:2,i:4},{text:'😱 ちょっと不気味…',f:-1,i:2},{text:'🔍 調査に行こう！',f:3,i:3}]},
+  {text:'遺跡で古い端末を拾った！でも電源の入れ方が分からない。 🗺️',choices:[{text:'💡 電源ボタン探してみて',f:1,i:3},{text:'🔧 修理手伝おうか？',f:3,i:4},{text:'🗑️ 早く捨てた方がいいかも',f:-2,i:1}]},
+  {text:'ドラゴンの影を見たって噂、みんな信じる？ 🐉',choices:[{text:'🔥 本物だったら大ニュース！',f:4,i:4},{text:'🤔 ガセだと思う',f:-1,i:2},{text:'🛡️ 退治に行くべき！',f:2,i:3}]},
+  {text:'旅人さん、温かいスープはいかが？ 🗺️',choices:[{text:'🍲 飲みたい！',f:3,i:4},{text:'🌡️ 本当に暖かいの？',f:1,i:2},{text:'🧚 ピクシさん生きてたんだ！',f:2,i:3}]},
+  {text:'星が近い夜は、願い事が叶うらしい。 🌟',choices:[{text:'🌠 何を願おうかな',f:2,i:3},{text:'🤷‍♂️ そんなの信じない',f:-1,i:1},{text:'📜 古い伝承かもね',f:1,i:2}]},
+  {text:'ギルドに珍しいクエストが来たよ。護衛だけど危険度Sランク！ 🏰',choices:[{text:'🗡️ 挑戦しよう！',f:4,i:4},{text:'😨 無理無理…',f:-2,i:1},{text:'💰 報酬は？',f:2,i:3}]},
+  {text:'新しい楽器を作ったんだ。今度聴いてくれる？ 🎻',choices:[{text:'🎶 ぜひ聴きたい！',f:3,i:3},{text:'🤔 音程合ってる？',f:-1,i:2},{text:'👏 発明家だね！',f:2,i:4}]},
+  // 新規10種
+  {text:'湖に巨大な魚が現れたらしい！誰か見た？ 🐟',choices:[{text:'🎣 釣りに行きたい！',f:3,i:3},{text:'📸 写真ある？',f:2,i:2},{text:'😅 それは盛りすぎでは',f:-1,i:1}]},
+  {text:'魔法の花が咲いたって話題になってるよ。 🌸',choices:[{text:'✨ 見に行きたい！',f:3,i:4},{text:'🤔 本当に咲くの？',f:1,i:2},{text:'😤 どうせ作り話',f:-2,i:1}]},
+  {text:'街の広場で占い師が無料で未来を見てくれるって！ 🔮',choices:[{text:'🙋‍♂️ 占ってほしい！',f:3,i:3},{text:'🤷‍♀️ 信じないなぁ',f:-1,i:2},{text:'👀 行列できてたよ',f:2,i:2}]},
+  {text:'今日の森は霧が深いから気をつけてね。 🌫️',choices:[{text:'👣 近道してみる',f:2,i:2},{text:'🙅‍♀️ 行かない方がいい',f:1,i:1},{text:'😱 怖いからやめとく',f:-1,i:2}]},
+  {text:'天空城が見えたって人がいる！本当かな？ 🏯',choices:[{text:'👀 見てみたい！',f:3,i:4},{text:'🤨 幻覚じゃ？',f:-2,i:1},{text:'🌈 冒険の予感！',f:2,i:3}]},
+  {text:'地下迷宮でレアアイテムが見つかったって！ 🗝️',choices:[{text:'💎 参加したい！',f:3,i:4},{text:'😅 迷子になりそう',f:1,i:2},{text:'🤥 嘘じゃない？',f:-2,i:1}]},
+  {text:'炎の祭りが今夜開催！みんな来てね！ 🔥',choices:[{text:'🕺 盛り上がりそう！',f:3,i:3},{text:'🥵 火の粉に注意',f:1,i:2},{text:'😑 あまり興味ない',f:-1,i:1}]},
+  {text:'月が今日はいつもより赤く見える…不吉な予感？ 🌕',choices:[{text:'🌑 神秘的だね',f:2,i:3},{text:'😱 ちょっと怖い',f:1,i:1},{text:'🤣 ただの気のせい',f:-1,i:1}]},
+  {text:'港町で新しい市場がオープンしたらしい！ 🏪',choices:[{text:'🛍️ 行ってみたい！',f:3,i:2},{text:'🍴 美味しいものありそう',f:2,i:3},{text:'💸 節約中だから無理',f:-1,i:1}]},
+  {text:'砂漠でオアシスを発見した旅人がいるそう！ 🏜️',choices:[{text:'💧 行ってみたい',f:3,i:3},{text:'🧭 道に迷いそう',f:1,i:1},{text:'🦴 幻だよたぶん',f:-1,i:1}]}
 ];
 
+// availableから一度きりで抽出
+let availableCatalogue = [...postCatalogue];
+let postId = 0;
+const posts = [];
 
-let postId=0;
-const posts=[];
+// DOM refs
+const statsDiv = document.getElementById('stats');
+const feedSec = document.getElementById('feed');
+const levelUpDiv = document.getElementById('levelUp');
+const loaderDiv = document.getElementById('loader');
+const profileBtn = document.getElementById('profileBtn');
+const overlay = document.getElementById('profileOverlay');
+const pStats = document.getElementById('pStats');
+const closeProfile = document.getElementById('closeProfile');
 
-// 3. DOM refs
-const statsDiv=document.getElementById('stats');
-const feedSec=document.getElementById('feed');
-const levelUpDiv=document.getElementById('levelUp');
-const loaderDiv=document.getElementById('loader');
-const profileBtn=document.getElementById('profileBtn');
-const overlay=document.getElementById('profileOverlay');
-const pStats=document.getElementById('pStats');
-const closeProfile=document.getElementById('closeProfile');
+// ユーティリティ
+const randIndex = len => Math.floor(Math.random()*len);
 
-// utility
-const rand=arr=>arr[Math.floor(Math.random()*arr.length)];
-
-// Post factory
+// ポスト生成（一度きり）
 function createPost(){
-  const base=rand(postCatalogue);
-  const p=JSON.parse(JSON.stringify(base));
-  p.id=++postId; p.likes=0; p.comments=[]; p.liked=false; p.commented=false;
+  if(availableCatalogue.length===0) return null;
+  const idx = randIndex(availableCatalogue.length);
+  const base = availableCatalogue.splice(idx,1)[0];
+  const p = JSON.parse(JSON.stringify(base));
+  p.id = ++postId;
+  p.likes = 0;
+  p.comments = [];
+  p.liked = false;
+  p.commented = false;
   return p;
 }
 
 function renderStats(){
-  statsDiv.innerHTML=`<strong>Followers:</strong> ${player.followers} &nbsp; | &nbsp; <strong>Influence:</strong> ${player.influence} &nbsp; | &nbsp; <strong>LV:</strong> ${player.level}`;
+  statsDiv.innerHTML = `<strong>Followers:</strong> ${player.followers} &nbsp; | &nbsp; ` +
+                       `<strong>Influence:</strong> ${player.influence} &nbsp; | &nbsp; ` +
+                       `<strong>LV:</strong> ${player.level}`;
 }
 
 function checkLevelUp(){
-  const need=player.level*20;
-  if(player.influence>=need){
-    player.level++; player.influence=0;
-    levelUpDiv.style.display='block';
-    levelUpDiv.textContent=`レベルアップ！ LV${player.level}`;
-    for(let i=0;i<3;i++) posts.unshift(createPost());
+  const need = player.level * 20;
+  if(player.influence >= need){
+    player.level++;
+    player.influence = 0;
+    levelUpDiv.style.display = 'block';
+    levelUpDiv.textContent = `レベルアップ！ LV${player.level}`;
+    for(let i=0;i<3;i++){
+      const n = createPost();
+      if(n) posts.unshift(n);
+    }
     renderFeed();
-    setTimeout(()=>levelUpDiv.style.display='none',4000);
+    setTimeout(()=> levelUpDiv.style.display = 'none', 4000);
   }
 }
 
 function likePost(id){
-  const p=posts.find(x=>x.id===id); if(!p||p.liked) return;
-  p.likes++; p.liked=true;
-  player.followers+=1+Math.floor(player.level/2);
-  player.influence+=2;
+  const p = posts.find(x=>x.id===id);
+  if(!p || p.liked) return;
+  p.likes++;
+  p.liked = true;
+  player.followers += 1 + Math.floor(player.level/2);
+  player.influence += 2;
   player.likesGiven++;
   renderFeed(); renderStats(); checkLevelUp();
 }
 
 function commentPost(id){
-  const p=posts.find(x=>x.id===id); if(!p||p.commented) return;
-  const existing=document.querySelector(`.choiceBox[data-post="${id}"]`);
-  if(existing){existing.remove(); return;}
-  const art=feedSec.querySelector(`article[data-id="${id}"]`);
-  const box=document.createElement('div'); box.className='choiceBox'; box.dataset.post=id;
-  p.choices.forEach(ch=>{
-    const btn=document.createElement('button'); btn.textContent=ch.text;
-    btn.onclick=()=>{applyChoice(p,ch); box.remove();};
+  const p = posts.find(x=>x.id===id);
+  if(!p || p.commented) return;
+  const existing = document.querySelector(`.choiceBox[data-post="${id}"]`);
+  if(existing){ existing.remove(); return; }
+  const art = feedSec.querySelector(`article[data-id="${id}"]`);
+  const box = document.createElement('div');
+  box.className = 'choiceBox';
+  box.dataset.post = id;
+  p.choices.forEach(ch => {
+    const btn = document.createElement('button');
+    btn.textContent = ch.text;
+    btn.onclick = () => { applyChoice(p, ch); box.remove(); };
     box.appendChild(btn);
   });
   art.appendChild(box);
 }
 
-function applyChoice(post,ch){
-  post.comments.push(ch.text); post.commented=true;
-  player.followers=Math.max(0,player.followers+ch.f);
-  player.influence+=ch.i; player.commentsMade++;
+function applyChoice(post, ch){
+  post.comments.push(ch.text);
+  post.commented = true;
+  player.followers = Math.max(0, player.followers + ch.f);
+  player.influence += ch.i;
+  player.commentsMade++;
   renderFeed(); renderStats(); checkLevelUp();
 }
 
 function renderFeed(){
-  feedSec.innerHTML='';
-  posts.slice(0,20).forEach(p=>{
-    const art=document.createElement('article'); art.dataset.id=p.id;
-    art.innerHTML=`<div class="author">NPC</div><div class="msg">${p.text}</div><div class="actions"><button class="like ${p.liked?'liked':''}">いいね ${p.likes}</button><button class="comment">コメント ${p.comments.length}</button></div>`;
-    art.querySelector('.like').onclick=()=>likePost(p.id);
-    art.querySelector('.comment').onclick=()=>commentPost(p.id);
+  feedSec.innerHTML = '';
+  posts.slice(0,20).forEach(p => {
+    const art = document.createElement('article');
+    art.dataset.id = p.id;
+    art.innerHTML = `<div class="author">NPC</div><div class="msg">${p.text}</div>` +
+                    `<div class="actions">` +
+                    `<button class="like ${p.liked?'liked':''}">いいね ${p.likes}</button>` +
+                    `<button class="comment">コメント ${p.comments.length}</button>` +
+                    `</div>`;
+    art.querySelector('.like').onclick = () => likePost(p.id);
+    art.querySelector('.comment').onclick = () => commentPost(p.id);
     feedSec.appendChild(art);
   });
 }
 
-// profile modal
+// プロフィールモーダル
 function openProfile(){
-  pStats.innerHTML=`<strong>Followers:</strong> ${player.followers}<br><strong>Influence:</strong> ${player.influence}<br><strong>Level:</strong> ${player.level}<br><strong>Likes Given:</strong> ${player.likesGiven}<br><strong>Comments Made:</strong> ${player.commentsMade}`;
-  overlay.style.display='flex';
+  pStats.innerHTML = `<strong>Followers:</strong> ${player.followers}<br>`+
+                     `<strong>Influence:</strong> ${player.influence}<br>`+
+                     `<strong>Level:</strong> ${player.level}<br>`+
+                     `<strong>Likes Given:</strong> ${player.likesGiven}<br>`+
+                     `<strong>Comments Made:</strong> ${player.commentsMade}`;
+  overlay.style.display = 'flex';
 }
-function closeProfileModal(){overlay.style.display='none';}
-profileBtn.onclick=openProfile;
-closeProfile.onclick=closeProfileModal;
-overlay.onclick=e=>{if(e.target===overlay) closeProfileModal();};
+function closeProfileModal(){ overlay.style.display = 'none'; }
+profileBtn.onclick = openProfile;
+closeProfile.onclick = closeProfileModal;
+overlay.onclick = e => { if(e.target===overlay) closeProfileModal(); };
 
 // boot
-function boot(){
-  for(let i=0;i<5;i++) posts.push(createPost());
+window.addEventListener('DOMContentLoaded', ()=>{
+  for(let i=0;i<5;i++){
+    const n = createPost();
+    if(n) posts.push(n);
+  }
   renderStats(); renderFeed(); loaderDiv.style.display='none';
-}
-window.addEventListener('DOMContentLoaded', boot);
+});
+
+// テスト
+console.assert(new Set(posts.map(p=>p.text)).size === posts.length, '初期ポストは重複なし');
+console.assert(availableCatalogue.length === postCatalogue.length - posts.length, 'availableCatalogue 更新');
 </script>
 </body>
 </html>
